@@ -1,0 +1,62 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_TOP_DOWN()
+
+title C4 - Component Diagram - Módulo gestión de contactos
+
+Container_Boundary(crm, "Módulo gestión de contactos") {
+
+  Component(authController, "AuthController", "NestJS Controller", "Autenticación.")
+  Component(usersController, "UsersController", "NestJS Controller", "Gestión de usuarios.")
+  Component(contactsController, "ContactsController", "NestJS Controller", "Gestión de contactos.")
+  Component(interactionsController, "InteractionsController", "NestJS Controller", "Registro y consulta de interacciones.")
+  Component(ticketsController, "TicketsController", "NestJS Controller", "Gestión de tickets.")
+  Component(catalogsController, "CatalogsController", "NestJS Controller", "Etiquetas, categorías y relaciones.")
+  Component(preferencesController, "ContactPreferencesController", "NestJS Controller", "Preferencias de contacto.")
+  Component(socialController, "SocialProfilesController", "NestJS Controller", "Perfiles sociales.")
+  Component(alertsController, "AlertsController", "NestJS Controller", "Alertas y próximos eventos.")
+  Component(searchController, "SearchController", "NestJS Controller", "Búsqueda avanzada.")
+  Component(importController, "ImportExportController", "NestJS Controller", "Importación y exportación.")
+
+  Component(authService, "AuthService", "NestJS Service", "Valida credenciales y genera JWT.")
+  Component(usersService, "UsersService", "NestJS Service", "Lógica de usuarios.")
+  Component(contactsService, "ContactsService", "NestJS Service", "Lógica de contactos.")
+  Component(interactionsService, "InteractionsService", "NestJS Service", "Lógica de interacciones.")
+  Component(ticketsService, "TicketsService", "NestJS Service", "Lógica de tickets.")
+  Component(catalogsService, "CatalogsService", "NestJS Service", "Lógica de catálogos.")
+  Component(preferencesService, "ContactPreferencesService", "NestJS Service", "Lógica de preferencias.")
+  Component(socialService, "SocialProfilesService", "NestJS Service", "Lógica de perfiles sociales.")
+  Component(alertsService, "AlertsService", "NestJS Service", "Lógica de alertas.")
+  Component(searchService, "SearchService", "NestJS Service", "Lógica de búsqueda.")
+  Component(importService, "ImportExportService", "NestJS Service", "Lógica de importación/exportación.")
+
+  Component(databaseService, "DatabaseService", "NestJS Service", "Acceso centralizado a SQL Server.")
+  Component(jwtService, "JwtService", "NestJS", "Generación y validación de JWT.")
+}
+
+Rel(authController, authService, "Utiliza")
+Rel(usersController, usersService, "Utiliza")
+Rel(contactsController, contactsService, "Utiliza")
+Rel(interactionsController, interactionsService, "Utiliza")
+Rel(ticketsController, ticketsService, "Utiliza")
+Rel(catalogsController, catalogsService, "Utiliza")
+Rel(preferencesController, preferencesService, "Utiliza")
+Rel(socialController, socialService, "Utiliza")
+Rel(alertsController, alertsService, "Utiliza")
+Rel(searchController, searchService, "Utiliza")
+Rel(importController, importService, "Utiliza")
+
+Rel(authService, databaseService, "Consulta usuarios")
+Rel(authService, jwtService, "Genera JWT")
+
+Rel(usersService, databaseService, "Consulta y modifica")
+Rel(contactsService, databaseService, "Consulta y modifica")
+Rel(interactionsService, databaseService, "Consulta y modifica")
+Rel(ticketsService, databaseService, "Consulta y modifica")
+Rel(catalogsService, databaseService, "Consulta y modifica")
+Rel(preferencesService, databaseService, "Consulta y modifica")
+Rel(socialService, databaseService, "Consulta y modifica")
+Rel(alertsService, databaseService, "Consulta")
+Rel(searchService, databaseService, "Consulta")
+Rel(importService, databaseService, "Inserta y consulta")
+@enduml

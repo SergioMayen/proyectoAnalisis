@@ -1,0 +1,69 @@
+@startuml
+title C4 - Code Diagram - Módulo gestión de contactos
+
+package "Controllers" {
+  class AuthController
+  class UsersController
+  class ContactsController
+  class InteractionsController
+  class TicketsController
+  class CatalogsController
+  class ContactPreferencesController
+  class SocialProfilesController
+  class AlertsController
+  class SearchController
+  class ImportExportController
+}
+
+package "Services" {
+  class AuthService
+  class UsersService
+  class ContactsService
+  class InteractionsService
+  class TicketsService
+  class CatalogsService
+  class ContactPreferencesService
+  class SocialProfilesService
+  class AlertsService
+  class SearchService
+  class ImportExportService
+}
+
+package "Shared / Infrastructure" {
+  class DatabaseService
+  class JwtService
+}
+
+AuthController --> AuthService
+UsersController --> UsersService
+ContactsController --> ContactsService
+InteractionsController --> InteractionsService
+TicketsController --> TicketsService
+CatalogsController --> CatalogsService
+ContactPreferencesController --> ContactPreferencesService
+SocialProfilesController --> SocialProfilesService
+AlertsController --> AlertsService
+SearchController --> SearchService
+ImportExportController --> ImportExportService
+
+AuthService --> DatabaseService
+AuthService --> JwtService
+
+UsersService --> DatabaseService
+ContactsService --> DatabaseService
+InteractionsService --> DatabaseService
+TicketsService --> DatabaseService
+CatalogsService --> DatabaseService
+ContactPreferencesService --> DatabaseService
+SocialProfilesService --> DatabaseService
+AlertsService --> DatabaseService
+SearchService --> DatabaseService
+ImportExportService --> DatabaseService
+
+note right of DatabaseService
+  Punto de acceso común
+  a la persistencia.
+  Los servicios dependen
+  directamente de él.
+end note
+@enduml

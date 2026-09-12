@@ -1,0 +1,36 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_LEFT_RIGHT()
+
+title C4 - Container Diagram - Módulo gestión de contactos
+
+Person(user, "USUARIO DEL CRM", "Usuario operativo del CRM.")
+Person(admin, "ADMINISTRADOR", "Administrador del CRM.")
+System_Ext(reports, "INFORME Y ANALÍTICA", "Sistema externo de información y analítica.")
+System_Ext(sales, "VENTAS", "Sistema o área externa que consulta contactos.")
+
+System_Boundary(crm, "Módulo gestión de contactos") {
+  Container(api, "REST API", "NestJS Controllers", "Expone los endpoints REST consumidos por usuarios y sistemas externos.")
+  Container(auth, "Autenticación", "NestJS + JWT", "Valida credenciales y gestiona tokens JWT.")
+  Container(contacts, "Gestión CRM", "NestJS Services", "Implementa usuarios, contactos, interacciones, tickets, catálogos, preferencias, perfiles sociales, alertas y búsquedas.")
+  Container(importexport, "Importación / Exportación", "NestJS Service", "Procesa importaciones y genera exportaciones de contactos.")
+  Container(database, "Acceso a datos", "DatabaseService + mssql", "Centraliza la ejecución de consultas SQL.")
+}
+
+System_Ext(sqlserver, "SQL Server", "Base de datos del CRM.")
+
+Rel(user, api, "Utiliza el sistema", "HTTP/JSON")
+Rel(admin, api, "Administra el CRM", "HTTP/JSON")
+
+Rel(api, auth, "Autentica usuarios")
+Rel(api, contacts, "Solicita operaciones CRM")
+Rel(api, importexport, "Solicita importaciones y exportaciones")
+
+Rel(reports, api, "Cataloga contactos")
+Rel(api, sales, "Proporciona consultas de contactos")
+
+Rel(auth, database, "Consulta usuarios")
+Rel(contacts, database, "Consulta y modifica datos")
+Rel(importexport, database, "Lee e inserta datos")
+Rel(database, sqlserver, "Ejecuta SQL")
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_LEFT_RIGHT()
+
+title C4 - System Context - Módulo gestión de contactos
+
+Person(user, "USUARIO DEL CRM", "Utiliza el sistema para consultar contactos, gestionar tickets, registrar interacciones y realizar búsquedas.")
+Person(admin, "ADMINISTRADOR", "Gestiona usuarios, contactos, catálogos, etiquetas, categorías, tickets y exportaciones.")
+
+System(crm, "Módulo gestión de contactos", "Backend CRM desarrollado con NestJS que centraliza la gestión de contactos y procesos relacionados.")
+
+System_Ext(reports, "INFORME Y ANALÍTICA", "Sistema externo que interactúa con el CRM para catalogar contactos.")
+System_Ext(sales, "VENTAS", "Sistema o área externa que consulta información de contactos.")
+System_Ext(db, "SQL Server", "Base de datos donde se persiste la información del CRM.")
+
+Rel(user, crm, "Utiliza el sistema, consulta contactos, gestiona tickets, registra interacciones y realiza búsquedas", "HTTP/REST")
+Rel(crm, user, "Entrega información de contactos, resultados, alertas, preferencias y archivos de exportación", "HTTP/REST")
+
+Rel(admin, crm, "Gestiona usuarios, contactos, catálogos, etiquetas, categorías, tickets y exportaciones", "HTTP/REST")
+Rel(crm, admin, "Entrega información administrativa, resultados, datos del CRM y archivos exportados", "HTTP/REST")
+
+Rel(reports, crm, "Cataloga contactos")
+Rel(crm, sales, "Proporciona consulta de contactos")
+
+Rel(crm, db, "Almacena y consulta información", "SQL")
+@enduml
