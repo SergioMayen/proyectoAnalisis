@@ -1,0 +1,1763 @@
+openapi: 3.0.3
+
+info:
+  title: CRM API
+  description: |
+    Documentación de la API del sistema CRM.
+    Todos los endpoints utilizan el prefijo global `/api`.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor local
+
+tags:
+  - name: Autenticación
+  - name: Usuarios
+  - name: Contactos
+  - name: Búsqueda avanzada
+  - name: Interacciones
+  - name: Tickets
+  - name: Catálogos
+  - name: Preferencias de contacto
+  - name: Perfiles sociales
+  - name: Alertas
+  - name: Importación y exportación
+  - name: Raíz
+
+paths:
+
+  /auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: Autenticar usuario
+      description: Permite autenticar un usuario y obtener un token JWT.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: admin
+              password: "123456"
+      responses:
+        '200':
+          description: Login realizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccessResponse'
+              example:
+                success: true
+                message: Login realizado correctamente
+                data:
+                  access_token: eyJhbGciOiJIUzI1NiIs...
+                  user:
+                    id: 1
+                    username: admin
+                    user_code: ADM001
+                    first_name: Juan
+                    first_lastname: Pérez
+                    email: admin@example.com
+                    role: ADM
+        '401':
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: Usuario o password incorrecto
+                data: null
+
+  /users:
+    post:
+      tags:
+        - Usuarios
+      summary: Crear usuario
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              username: jperez
+              first_name: Juan
+              second_name: Carlos
+              first_lastname: Pérez
+              second_lastname: Gómez
+              email: jperez@example.com
+              password: "123456"
+              role: OPR
+              birth_date: "2000-05-10"
+      responses:
+        '201':
+          description: Usuario creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener todos los usuarios
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuarios consultados correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Usuarios consultados correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/{id}/inactivate:
+    patch:
+      tags:
+        - Usuarios
+      summary: Inactivar usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Usuario inactivado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullDataResponse'
+              example:
+                success: true
+                message: Usuario inactivado correctamente
+                data: null
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/{id}/activate:
+    patch:
+      tags:
+        - Usuarios
+      summary: Reactivar usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Usuario activado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullDataResponse'
+              example:
+                success: true
+                message: Usuario activado correctamente
+                data: null
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /contacts:
+    post:
+      tags:
+        - Contactos
+      summary: Crear contacto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRequest'
+            example:
+              nombres: Pedro
+              apellidos: López
+              email: pedro@example.com
+              telefono: "55555555"
+              empresa: Empresa S.A.
+              pipeline_status: CONVERSACION_INICIAL
+              birth_date: "1998-04-15"
+      responses:
+        '201':
+          description: Contacto creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    get:
+      tags:
+        - Contactos
+      summary: Obtener contactos activos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: |
+            Busca por nombres, apellidos, email, teléfono, empresa
+            o pipeline_status.
+          schema:
+            type: string
+          example: Pedro
+      responses:
+        '200':
+          description: Contactos consultados correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Contactos consultados correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /contacts/{id}:
+    put:
+      tags:
+        - Contactos
+      summary: Actualizar contacto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRequest'
+            example:
+              nombres: Pedro
+              apellidos: López García
+              email: pedro@example.com
+              telefono: "55555555"
+              empresa: Nueva Empresa
+              pipeline_status: SEGUIMIENTO
+              birth_date: "1998-04-15"
+      responses:
+        '200':
+          description: Contacto actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /search/contacts:
+    get:
+      tags:
+        - Búsqueda avanzada
+      summary: Buscar contactos mediante filtros avanzados
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: text
+          in: query
+          schema:
+            type: string
+          example: Pedro
+        - name: empresa
+          in: query
+          schema:
+            type: string
+          example: Microsoft
+        - name: pipeline_status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PipelineStatus'
+          example: SEGUIMIENTO
+        - name: tag_id
+          in: query
+          schema:
+            type: integer
+          example: 2
+        - name: category_id
+          in: query
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Búsqueda avanzada realizada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Búsqueda avanzada realizada correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdvancedSearchContact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /interactions:
+    post:
+      tags:
+        - Interacciones
+      summary: Registrar interacción
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionRequest'
+            example:
+              contact_id: 1
+              interaction_type: LLAMADA
+              descripcion: Se realizó llamada de seguimiento.
+              created_by: 2
+      responses:
+        '201':
+          description: Interacción registrada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /interactions/contact/{contactId}:
+    get:
+      tags:
+        - Interacciones
+      summary: Obtener historial de interacciones de un contacto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContactIdParam'
+      responses:
+        '200':
+          description: Historial consultado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interacciones consultadas correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Interaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tickets:
+    post:
+      tags:
+        - Tickets
+      summary: Crear ticket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketRequest'
+            example:
+              contact_id: 1
+              title: Problema con el servicio
+              description: El cliente reporta problemas.
+              status: ABIERTO
+              created_by: 2
+      responses:
+        '201':
+          description: Ticket creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    get:
+      tags:
+        - Tickets
+      summary: Obtener tickets activos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tickets consultados correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Tickets consultados correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tickets/contact/{contactId}:
+    get:
+      tags:
+        - Tickets
+      summary: Obtener tickets de un contacto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContactIdParam'
+      responses:
+        '200':
+          description: Tickets del contacto consultados correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Tickets consultados correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tickets/{id}/status:
+    patch:
+      tags:
+        - Tickets
+      summary: Actualizar estado de un ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  $ref: '#/components/schemas/TicketStatus'
+            example:
+              status: EN_PROCESO
+      responses:
+        '200':
+          description: Estado actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullDataResponse'
+        '400':
+          description: Estado inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tickets/{id}/inactivate:
+    patch:
+      tags:
+        - Tickets
+      summary: Inactivar ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Ticket inactivado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullDataResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /catalogs/tags:
+    post:
+      tags:
+        - Catálogos
+      summary: Crear etiqueta
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+            example:
+              name: Cliente VIP
+      responses:
+        '201':
+          description: Etiqueta creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Catálogos
+      summary: Obtener etiquetas activas
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Etiquetas consultadas correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Etiquetas consultadas correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+
+  /catalogs/categories:
+    post:
+      tags:
+        - Catálogos
+      summary: Crear categoría
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+            example:
+              name: Empresa
+              description: Clientes empresariales
+      responses:
+        '201':
+          description: Categoría creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Catálogos
+      summary: Obtener categorías activas
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Categorías consultadas correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Categorías consultadas correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+
+  /catalogs/contact-tags:
+    post:
+      tags:
+        - Catálogos
+      summary: Asignar etiqueta a contacto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contact_id
+                - tag_id
+              properties:
+                contact_id:
+                  type: integer
+                  example: 1
+                tag_id:
+                  type: integer
+                  example: 2
+      responses:
+        '201':
+          description: Etiqueta asignada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullDataResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /catalogs/contact-categories:
+    post:
+      tags:
+        - Catálogos
+      summary: Asignar categoría a contacto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contact_id
+                - category_id
+              properties:
+                contact_id:
+                  type: integer
+                  example: 1
+                category_id:
+                  type: integer
+                  example: 3
+      responses:
+        '201':
+          description: Categoría asignada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullDataResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /contact-preferences:
+    post:
+      tags:
+        - Preferencias de contacto
+      summary: Crear o actualizar preferencias de contacto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactPreferenceRequest'
+            example:
+              contact_id: 1
+              preferred_channel: WHATSAPP
+              preferred_time: "14:00 - 16:00"
+              notes: No contactar por la mañana.
+      responses:
+        '200':
+          description: Preferencias guardadas correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactPreferenceResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /contact-preferences/contact/{contactId}:
+    get:
+      tags:
+        - Preferencias de contacto
+      summary: Consultar preferencias de un contacto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContactIdParam'
+      responses:
+        '200':
+          description: Preferencias consultadas correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactPreferenceResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /social-profiles:
+    post:
+      tags:
+        - Perfiles sociales
+      summary: Crear perfil social
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialProfileRequest'
+            example:
+              contact_id: 1
+              platform: LINKEDIN
+              profile_url: https://linkedin.com/in/usuario
+      responses:
+        '201':
+          description: Perfil social creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialProfileResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /social-profiles/contact/{contactId}:
+    get:
+      tags:
+        - Perfiles sociales
+      summary: Obtener perfiles sociales activos de un contacto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContactIdParam'
+      responses:
+        '200':
+          description: Perfiles sociales consultados correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Perfiles sociales consultados correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SocialProfile'
+
+  /social-profiles/{id}/inactivate:
+    patch:
+      tags:
+        - Perfiles sociales
+      summary: Inactivar perfil social
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Perfil social inactivado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullDataResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /alerts/upcoming:
+    get:
+      tags:
+        - Alertas
+      summary: Consultar cumpleaños y aniversarios próximos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          required: false
+          description: Cantidad de días hacia adelante. Por defecto 30.
+          schema:
+            type: integer
+            default: 30
+            minimum: 1
+          example: 60
+      responses:
+        '200':
+          description: Alertas consultadas correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Alertas próximas consultadas correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UpcomingAlert'
+
+  /import-export/contacts:
+    get:
+      tags:
+        - Importación y exportación
+      summary: Exportar contactos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Contactos exportados correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Contactos exportados correctamente
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+
+    post:
+      tags:
+        - Importación y exportación
+      summary: Importar múltiples contactos
+      description: |
+        El endpoint espera directamente un arreglo JSON de contactos,
+        no un objeto que contenga el arreglo.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/ImportContact'
+            example:
+              - nombres: Pedro
+                apellidos: López
+                email: pedro@example.com
+                telefono: "55555555"
+                empresa: Empresa S.A.
+                pipeline_status: SEGUIMIENTO
+              - nombres: Ana
+                apellidos: Gómez
+                email: ana@example.com
+                pipeline_status: CONVERSACION_INICIAL
+      responses:
+        '200':
+          description: Importación finalizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResponse'
+              example:
+                success: true
+                message: "Importación finalizada. Insertados: 2. Omitidos: 0."
+                data:
+                  inserted: 2
+                  skipped: 0
+                  errors: []
+        '400':
+          description: Formato de importación inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /:
+    get:
+      tags:
+        - Raíz
+      summary: Endpoint raíz de la API
+      description: Devuelve el mensaje definido por AppService.
+      security: []
+      responses:
+        '200':
+          description: API disponible
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: string
+                    example: Hello World!
+                  - type: object
+                    additionalProperties: true
+              examples:
+                texto:
+                  value: Hello World!
+                objeto:
+                  value:
+                    message: API funcionando correctamente
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador único del recurso
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+
+    ContactIdParam:
+      name: contactId
+      in: path
+      required: true
+      description: Identificador único del contacto
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+
+  responses:
+    Unauthorized:
+      description: No autorizado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            message: Token no proporcionado o inválido
+            data: null
+
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            message: Recurso no encontrado
+            data: null
+
+  schemas:
+
+    PipelineStatus:
+      type: string
+      enum:
+        - CONVERSACION_INICIAL
+        - SEGUIMIENTO
+        - CONVERSACION_CERRADA
+
+    UserRole:
+      type: string
+      enum:
+        - SUP
+        - ADM
+        - OPR
+        - CLI
+        - SPT
+
+    InteractionType:
+      type: string
+      enum:
+        - LLAMADA
+        - EMAIL
+        - WHATSAPP
+        - REUNION
+
+    TicketStatus:
+      type: string
+      enum:
+        - ABIERTO
+        - EN_PROCESO
+        - CERRADO
+
+    SocialPlatform:
+      type: string
+      enum:
+        - LINKEDIN
+        - FACEBOOK
+        - INSTAGRAM
+        - X
+        - OTRO
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          example: "123456"
+
+    LoginUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: admin
+        user_code:
+          type: string
+          example: ADM001
+        first_name:
+          type: string
+          example: Juan
+        first_lastname:
+          type: string
+          example: Pérez
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    LoginSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Login realizado correctamente
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIs...
+            user:
+              $ref: '#/components/schemas/LoginUser'
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - first_name
+        - first_lastname
+        - email
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          example: jperez
+        first_name:
+          type: string
+          example: Juan
+        second_name:
+          type: string
+          nullable: true
+          example: Carlos
+        first_lastname:
+          type: string
+          example: Pérez
+        second_lastname:
+          type: string
+          nullable: true
+          example: Gómez
+        email:
+          type: string
+          format: email
+          example: jperez@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: "123456"
+        role:
+          $ref: '#/components/schemas/UserRole'
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-05-10"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: jperez
+        user_code:
+          type: string
+          example: OPR001
+        first_name:
+          type: string
+          example: Juan
+        second_name:
+          type: string
+          nullable: true
+          example: Carlos
+        first_lastname:
+          type: string
+          example: Pérez
+        second_lastname:
+          type: string
+          nullable: true
+          example: Gómez
+        email:
+          type: string
+          format: email
+          example: jperez@example.com
+        role:
+          $ref: '#/components/schemas/UserRole'
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-05-10"
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-09-12T10:00:00.000Z"
+
+    UserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Usuario creado correctamente
+        data:
+          $ref: '#/components/schemas/User'
+
+    ContactRequest:
+      type: object
+      required:
+        - nombres
+        - apellidos
+        - pipeline_status
+      properties:
+        nombres:
+          type: string
+          example: Pedro
+        apellidos:
+          type: string
+          example: López
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: pedro@example.com
+        telefono:
+          type: string
+          nullable: true
+          example: "55555555"
+        empresa:
+          type: string
+          nullable: true
+          example: Empresa S.A.
+        pipeline_status:
+          $ref: '#/components/schemas/PipelineStatus'
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          example: "1998-04-15"
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombres:
+          type: string
+          example: Pedro
+        apellidos:
+          type: string
+          example: López
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: pedro@example.com
+        telefono:
+          type: string
+          nullable: true
+          example: "55555555"
+        empresa:
+          type: string
+          nullable: true
+          example: Empresa S.A.
+        pipeline_status:
+          $ref: '#/components/schemas/PipelineStatus'
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          example: "1998-04-15"
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-09-12T10:00:00.000Z"
+
+    AdvancedSearchContact:
+      allOf:
+        - $ref: '#/components/schemas/Contact'
+        - type: object
+          properties:
+            anniversary_date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+
+    ContactResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Contacto creado correctamente
+        data:
+          $ref: '#/components/schemas/Contact'
+
+    InteractionRequest:
+      type: object
+      required:
+        - contact_id
+        - interaction_type
+        - descripcion
+        - created_by
+      properties:
+        contact_id:
+          type: integer
+          example: 1
+        interaction_type:
+          $ref: '#/components/schemas/InteractionType'
+        descripcion:
+          type: string
+          example: Se realizó llamada de seguimiento.
+        created_by:
+          type: integer
+          example: 2
+
+    Interaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        contact_id:
+          type: integer
+          example: 1
+        interaction_type:
+          $ref: '#/components/schemas/InteractionType'
+        descripcion:
+          type: string
+          example: Se realizó llamada de seguimiento.
+        created_by:
+          type: integer
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-09-12T10:00:00.000Z"
+
+    InteractionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Interacción registrada correctamente
+        data:
+          $ref: '#/components/schemas/Interaction'
+
+    TicketRequest:
+      type: object
+      required:
+        - contact_id
+        - title
+        - description
+        - status
+        - created_by
+      properties:
+        contact_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Problema con el servicio
+        description:
+          type: string
+          example: El cliente reporta problemas.
+        status:
+          $ref: '#/components/schemas/TicketStatus'
+        created_by:
+          type: integer
+          example: 2
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        contact_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Problema con el servicio
+        description:
+          type: string
+          example: El cliente reporta problemas.
+        status:
+          $ref: '#/components/schemas/TicketStatus'
+        created_by:
+          type: integer
+          example: 2
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-09-12T10:00:00.000Z"
+
+    TicketResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Ticket creado correctamente
+        data:
+          $ref: '#/components/schemas/Ticket'
+
+    TagRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Cliente VIP
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: Cliente VIP
+        is_active:
+          type: boolean
+          example: true
+
+    TagResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Etiqueta creada correctamente
+        data:
+          $ref: '#/components/schemas/Tag'
+
+    CategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Empresa
+        description:
+          type: string
+          nullable: true
+          example: Clientes empresariales
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        name:
+          type: string
+          example: Empresa
+        description:
+          type: string
+          nullable: true
+          example: Clientes empresariales
+        is_active:
+          type: boolean
+          example: true
+
+    CategoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Categoría creada correctamente
+        data:
+          $ref: '#/components/schemas/Category'
+
+    ContactPreferenceRequest:
+      type: object
+      required:
+        - contact_id
+      properties:
+        contact_id:
+          type: integer
+          example: 1
+        preferred_channel:
+          type: string
+          example: WHATSAPP
+        preferred_time:
+          type: string
+          example: "14:00 - 16:00"
+        notes:
+          type: string
+          nullable: true
+          example: No contactar por la mañana.
+
+    ContactPreference:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        contact_id:
+          type: integer
+          example: 1
+        preferred_channel:
+          type: string
+          example: WHATSAPP
+        preferred_time:
+          type: string
+          example: "14:00 - 16:00"
+        notes:
+          type: string
+          nullable: true
+          example: No contactar por la mañana.
+
+    ContactPreferenceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Preferencias consultadas correctamente
+        data:
+          $ref: '#/components/schemas/ContactPreference'
+
+    SocialProfileRequest:
+      type: object
+      required:
+        - contact_id
+        - platform
+        - profile_url
+      properties:
+        contact_id:
+          type: integer
+          example: 1
+        platform:
+          $ref: '#/components/schemas/SocialPlatform'
+        profile_url:
+          type: string
+          format: uri
+          example: https://linkedin.com/in/usuario
+
+    SocialProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        contact_id:
+          type: integer
+          example: 1
+        platform:
+          $ref: '#/components/schemas/SocialPlatform'
+        profile_url:
+          type: string
+          format: uri
+          example: https://linkedin.com/in/usuario
+        is_active:
+          type: boolean
+          example: true
+
+    SocialProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Perfil social creado correctamente
+        data:
+          $ref: '#/components/schemas/SocialProfile'
+
+    UpcomingAlert:
+      type: object
+      additionalProperties: true
+      example:
+        contact_id: 1
+        nombres: Pedro
+        apellidos: López
+        alert_type: CUMPLEANOS
+        date: "2026-09-20"
+
+    ImportContact:
+      type: object
+      required:
+        - nombres
+        - apellidos
+        - pipeline_status
+      properties:
+        nombres:
+          type: string
+          example: Pedro
+        apellidos:
+          type: string
+          example: López
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: pedro@example.com
+        telefono:
+          type: string
+          nullable: true
+          example: "55555555"
+        empresa:
+          type: string
+          nullable: true
+          example: Empresa S.A.
+        pipeline_status:
+          $ref: '#/components/schemas/PipelineStatus'
+
+    ImportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Importación finalizada. Insertados: 2. Omitidos: 0."
+        data:
+          type: object
+          properties:
+            inserted:
+              type: integer
+              example: 2
+            skipped:
+              type: integer
+              example: 0
+            errors:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+              example: []
+
+    NullDataResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operación realizada correctamente
+        data:
+          nullable: true
+          example: null
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Ocurrió un error
+        data:
+          nullable: true
+          example: null
+
+security:
+  - bearerAuth: []
