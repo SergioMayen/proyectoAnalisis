@@ -1,0 +1,59 @@
+@startuml
+title CRM - Diagrama de clases de análisis (propuesta basada en módulos observados)
+skinparam classAttributeIconSize 0
+class Usuario {
+  +id: int
+  +username: string
+  +role: string
+  +is_active: boolean
+}
+class Contacto {
+  +id: int
+  +nombre: string
+  +correo: string
+  +telefono: string
+  +is_active: boolean
+}
+class Interaccion {
+  +id: int
+  +tipo: string
+  +fecha: datetime
+  +descripcion: string
+}
+class Ticket {
+  +id: int
+  +titulo: string
+  +estado: string
+  +created_at: datetime
+}
+class Etiqueta {
+  +id: int
+  +nombre: string
+}
+class Categoria {
+  +id: int
+  +nombre: string
+}
+class PreferenciaContacto {
+  +id: int
+  +canal: string
+  +valor: string
+}
+class PerfilSocial {
+  +id: int
+  +plataforma: string
+  +url: string
+}
+Usuario "1" --> "0..*" Interaccion : registra
+Contacto "1" *-- "0..*" Interaccion : historial
+Contacto "1" *-- "0..*" Ticket : seguimiento
+Contacto "1" *-- "0..*" PreferenciaContacto
+Contacto "1" *-- "0..*" PerfilSocial
+Contacto "0..*" -- "0..*" Etiqueta : asignación
+Contacto "0..*" -- "0..*" Categoria : clasificación
+note bottom
+Ajustar nombres y tipos a las tablas reales del script SQL.
+Las composiciones representan propiedad lógica propuesta y deben validarse
+contra reglas de borrado y claves foráneas.
+end note
+@enduml

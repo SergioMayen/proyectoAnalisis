@@ -1,0 +1,23 @@
+@startuml
+title Secuencia de autenticación CRM
+actor Usuario
+boundary "Cliente web" as Front
+control "AuthController" as Controller
+control "AuthService" as Service
+database "SQL Server" as DB
+control "JWT Service" as JWT
+Usuario -> Front : Ingresa credenciales
+Front -> Controller : POST /api/auth/login
+Controller -> Service : validarCredenciales(dto)
+Service -> DB : consultar usuario
+DB --> Service : usuario / sin coincidencia
+alt credenciales válidas y usuario activo
+  Service -> JWT : firmar token
+  JWT --> Service : access token
+  Service --> Controller : respuesta de éxito
+  Controller --> Front : 200 + token
+else credenciales inválidas o usuario inactivo
+  Service --> Controller : error de autenticación
+  Controller --> Front : 401
+end
+@enduml

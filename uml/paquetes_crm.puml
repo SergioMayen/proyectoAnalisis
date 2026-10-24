@@ -1,0 +1,32 @@
+@startuml
+title Paquetes del backend CRM (NestJS)
+skinparam packageStyle rectangle
+package "API / NestJS" {
+  package "auth" as auth
+  package "users" as users
+  package "contacts" as contacts
+  package "interactions" as interactions
+  package "tickets" as tickets
+  package "catalogs" as catalogs
+  package "search" as search
+  package "alerts" as alerts
+  package "contact-preferences" as prefs
+  package "social-profiles" as social
+  package "import-export" as io
+  package "database" as db
+  package "common / interfaces" as common
+}
+auth ..> db
+users ..> db
+contacts ..> db
+interactions ..> db
+tickets ..> db
+catalogs ..> db
+search ..> db
+alerts ..> db
+prefs ..> db
+social ..> db
+io ..> db
+auth ..> common
+contacts ..> common
+@enduml

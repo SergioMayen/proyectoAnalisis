@@ -1,0 +1,33 @@
+@startuml
+title Actividad: creación de ticket CRM con swimlanes
+|Operador|
+start
+:Completar formulario del ticket;
+:Enviar solicitud;
+|API NestJS|
+:Validar DTO y campos obligatorios;
+if (¿Solicitud válida?) then (sí)
+  :Invocar TicketsService;
+  |Servicio de tickets|
+  :Validar contacto y reglas de estado;
+  if (¿Reglas satisfechas?) then (sí)
+    |SQL Server|
+    :Insertar ticket;
+    :Confirmar transacción;
+    |API NestJS|
+    :Construir respuesta 201;
+    |Operador|
+    :Visualizar confirmación;
+  else (no)
+    |API NestJS|
+    :Construir error de negocio;
+    |Operador|
+    :Corregir datos;
+  endif
+else (no)
+  :Responder error de validación 400;
+  |Operador|
+  :Corregir formulario;
+endif
+stop
+@enduml

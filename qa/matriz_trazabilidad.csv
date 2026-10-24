@@ -1,0 +1,7 @@
+Requisito,Historia,Endpoint,Modulo,Escenario BDD,Caso de prueba,Estado
+REQ-FN-001,HU-01,POST /api/auth/login,auth,features/autenticacion.feature,CP-01,Pendiente de ejecución
+REQ-FN-002,HU-02,POST /api/contacts,contacts,features/contactos.feature,CP-02,Pendiente de ejecución
+REQ-FN-003,HU-03,GET /api/contacts,contacts,features/contactos.feature,CP-03,Pendiente de ejecución
+REQ-FN-005,HU-05,POST /api/users,users,features/usuarios.feature,CP-04,Pendiente de ejecución
+REQ-FN-006,HU-06,POST /api/interactions,interactions,features/interacciones.feature,CP-05,Pendiente de ejecución
+REQ-FN-007,HU-04,POST /api/tickets,tickets,features/tickets.feature,CP-06,Pendiente de ejecución

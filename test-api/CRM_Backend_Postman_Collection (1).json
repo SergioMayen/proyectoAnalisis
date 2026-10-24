@@ -1,0 +1,1092 @@
+{
+  "info": {
+    "name": "CRM Backend - Postman",
+    "description": "Colección construida a partir de los controladores y DTO del ZIP crmProject. Base local predeterminada: http://localhost:3000/api. Algunas rutas no tienen guard de autenticación declarado en los controladores del ZIP; el token se guarda para pruebas y futuras rutas protegidas. Ejecuta primero Login y después crea un contacto y usuario de prueba antes de probar las rutas dependientes de IDs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "contactId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "ticketId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "tagId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "socialProfileId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Inicio y autenticación",
+      "item": [
+        {
+          "name": "Health check / raíz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api"
+              ]
+            },
+            "description": "Controlador raíz de NestJS. Puede devolver texto plano."
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Guarda data.access_token en la variable access_token y el ID del usuario autenticado, si existen.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('La petición responde correctamente', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "const json = pm.response.json();",
+                  "if (json && json.success && json.data && json.data.access_token) {",
+                  "  pm.collectionVariables.set('access_token', json.data.access_token);",
+                  "  if (json.data.user && json.data.user.id) pm.collectionVariables.set('userId', String(json.data.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Contactos",
+      "item": [
+        {
+          "name": "Listar contactos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/contacts",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "contacts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar contactos por texto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/contacts?search=Maria",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "contacts"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Maria",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Cambia Maria por un nombre, empresa, correo o teléfono."
+          }
+        },
+        {
+          "name": "Crear contacto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/contacts",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "contacts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Ana\",\n  \"apellidos\": \"Prueba Postman\",\n  \"email\": \"ana.postman.{{$timestamp}}@example.com\",\n  \"telefono\": \"5555-1234\",\n  \"empresa\": \"Empresa Demo\",\n  \"pipeline_status\": \"CONVERSACION_INICIAL\",\n  \"birth_date\": \"1998-05-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j && j.success && j.data && j.data.id) pm.collectionVariables.set('contactId', String(j.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar contacto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/contacts/{{contactId}}",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "contacts",
+                "{{contactId}}"
+              ]
+            },
+            "description": "Usa el ID guardado al ejecutar Crear contacto. Email debe ser único.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Ana\",\n  \"apellidos\": \"Prueba Actualizada\",\n  \"email\": \"ana.actualizada@example.com\",\n  \"telefono\": \"5555-1234\",\n  \"empresa\": \"Empresa Demo\",\n  \"pipeline_status\": \"SEGUIMIENTO\",\n  \"birth_date\": \"1998-05-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Usuarios",
+      "item": [
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/users",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/users",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"postman.demo.{{$timestamp}}\",\n  \"first_name\": \"Usuario\",\n  \"second_name\": \"Demo\",\n  \"first_lastname\": \"Postman\",\n  \"second_lastname\": \"CRM\",\n  \"email\": \"postman.demo.{{$timestamp}}@example.com\",\n  \"password\": \"Demo123*\",\n  \"role\": \"OPR\",\n  \"birth_date\": \"1999-03-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j && j.success && j.data && j.data.id) pm.collectionVariables.set('userId', String(j.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inactivar usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/users/{{userId}}/inactivate",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "users",
+                "{{userId}}",
+                "inactivate"
+              ]
+            },
+            "description": "Utiliza un ID de usuario válido. No inactives el usuario que necesitas para iniciar sesión."
+          }
+        },
+        {
+          "name": "Activar usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/users/{{userId}}/activate",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "users",
+                "{{userId}}",
+                "activate"
+              ]
+            },
+            "description": "Utiliza un ID de usuario que esté inactivo."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Interacciones",
+      "item": [
+        {
+          "name": "Crear interacción",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/interactions",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "interactions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"{{contactId}}\",\n  \"interaction_type\": \"LLAMADA\",\n  \"descripcion\": \"Llamada de prueba desde Postman\",\n  \"created_by\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Historial de interacciones por contacto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/interactions/contact/{{contactId}}",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "interactions",
+                "contact",
+                "{{contactId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Tickets",
+      "item": [
+        {
+          "name": "Listar tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/tickets",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "tickets"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar tickets por contacto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/tickets/contact/{{contactId}}",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "tickets",
+                "contact",
+                "{{contactId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/tickets",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"{{contactId}}\",\n  \"title\": \"Ticket de prueba Postman\",\n  \"description\": \"Creado para validar el endpoint\",\n  \"status\": \"ABIERTO\",\n  \"created_by\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j && j.success && j.data && j.data.id) pm.collectionVariables.set('ticketId', String(j.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar estado de ticket",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/tickets/{{ticketId}}/status",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EN_PROCESO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Inactivar ticket",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/tickets/{{ticketId}}/inactivate",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "inactivate"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Catálogos, etiquetas y categorías",
+      "item": [
+        {
+          "name": "Listar etiquetas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/catalogs/tags",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "catalogs",
+                "tags"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear etiqueta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/catalogs/tags",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "catalogs",
+                "tags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Etiqueta Postman Demo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j && j.success && j.data && j.data.id) pm.collectionVariables.set('tagId', String(j.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar categorías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/catalogs/categories",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "catalogs",
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear categoría",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/catalogs/categories",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "catalogs",
+                "categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Categoría Postman Demo\",\n  \"description\": \"Categoría de prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j && j.success && j.data && j.data.id) pm.collectionVariables.set('categoryId', String(j.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Asignar etiqueta a contacto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/catalogs/contact-tags",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "catalogs",
+                "contact-tags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"{{contactId}}\",\n  \"tag_id\": \"{{tagId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Asignar categoría a contacto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/catalogs/contact-categories",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "catalogs",
+                "contact-categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"{{contactId}}\",\n  \"category_id\": \"{{categoryId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Preferencias de contacto y perfiles sociales",
+      "item": [
+        {
+          "name": "Guardar/actualizar preferencia de contacto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/contact-preferences",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "contact-preferences"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"{{contactId}}\",\n  \"preferred_channel\": \"WHATSAPP\",\n  \"preferred_time\": \"Tarde\",\n  \"notes\": \"Preferencia de prueba Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consultar preferencia por contacto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/contact-preferences/contact/{{contactId}}",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "contact-preferences",
+                "contact",
+                "{{contactId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear perfil social",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/social-profiles",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "social-profiles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"{{contactId}}\",\n  \"platform\": \"LINKEDIN\",\n  \"profile_url\": \"https://www.linkedin.com/in/demo-postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j && j.success && j.data && j.data.id) pm.collectionVariables.set('socialProfileId', String(j.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar perfiles sociales por contacto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/social-profiles/contact/{{contactId}}",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "social-profiles",
+                "contact",
+                "{{contactId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inactivar perfil social",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/social-profiles/{{socialProfileId}}/inactivate",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "social-profiles",
+                "{{socialProfileId}}",
+                "inactivate"
+              ]
+            },
+            "description": "Reemplaza socialProfileId manualmente con el ID devuelto al crear un perfil social."
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Búsqueda avanzada y alertas",
+      "item": [
+        {
+          "name": "Búsqueda avanzada de contactos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/search/contacts?text=Ana&empresa=Empresa%20Demo&pipeline_status=SEGUIMIENTO&tag_id={{tagId}}&category_id={{categoryId}}",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "search",
+                "contacts"
+              ],
+              "query": [
+                {
+                  "key": "text",
+                  "value": "Ana",
+                  "disabled": false
+                },
+                {
+                  "key": "empresa",
+                  "value": "Empresa%20Demo",
+                  "disabled": false
+                },
+                {
+                  "key": "pipeline_status",
+                  "value": "SEGUIMIENTO",
+                  "disabled": false
+                },
+                {
+                  "key": "tag_id",
+                  "value": "{{tagId}}",
+                  "disabled": false
+                },
+                {
+                  "key": "category_id",
+                  "value": "{{categoryId}}",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Todos los filtros son opcionales; puedes quitar parámetros que no quieras usar."
+          }
+        },
+        {
+          "name": "Alertas próximas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/alerts/upcoming?days=30",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "alerts",
+                "upcoming"
+              ],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Consulta cumpleaños y aniversarios próximos en el rango indicado."
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Importar y exportar contactos",
+      "item": [
+        {
+          "name": "Exportar contactos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/import-export/contacts",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "import-export",
+                "contacts"
+              ]
+            },
+            "description": "Devuelve los contactos en la respuesta JSON; no genera necesariamente un archivo descargable."
+          }
+        },
+        {
+          "name": "Importar contactos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/import-export/contacts",
+              "host": [
+                "localhost"
+              ],
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "import-export",
+                "contacts"
+              ]
+            },
+            "description": "El body debe ser un arreglo JSON, no un objeto con la propiedad contacts.",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"nombres\": \"Carlos\",\n    \"apellidos\": \"Importado Postman\",\n    \"email\": \"carlos.importado.{{$timestamp}}@example.com\",\n    \"telefono\": \"5555-6789\",\n    \"empresa\": \"Importación Demo\",\n    \"pipeline_status\": \"CONVERSACION_INICIAL\",\n    \"birth_date\": \"2000-10-10\"\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
